@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gere seu plano de treino semanal personalizado de acordo com sua idade, peso e repetições.">
+<title>TreinoPro | Plano de Treino Semanal</title>
+<style>
+  :root{
+    --bg:#0b0f17; --card:#131a26; --card2:#18212f; --border:#243044;
+    --text:#e8edf5; --muted:#8a97ab; --accent:#22d3a0; --accent2:#3b82f6;
+    --danger:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#12304a 0%,transparent 60%),var(--bg);
+    color:var(--text);line-height:1.6;min-height:100vh;
+  }
+  .container{max-width:1000px;margin:0 auto;padding:0 20px}
+  header{padding:22px 0;border-bottom:1px solid var(--border)}
+  .nav{display:flex;justify-content:space-between;align-items:center}
+  .logo{font-weight:800;font-size:1.3rem;letter-spacing:-.5px}
+  .logo span{color:var(--accent)}
+  .badge{font-size:.75rem;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:99px}
+  .hero{text-align:center;padding:60px 0 30px}
+  .hero h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;letter-spacing:-1px}
+  .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--muted);max-width:560px;margin:16px auto 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;margin:30px auto;max-width:640px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px;font-weight:600}
+  input,select{
+    width:100%;padding:13px 14px;background:var(--card2);border:1px solid var(--border);
+    border-radius:10px;color:var(--text);font-size:1rem;outline:none;transition:.2s;
+  }
+  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(34,211,160,.15)}
+  .field{margin-bottom:18px}
+  .hint{font-size:.75rem;color:var(--muted);margin-top:5px}
+  .error{color:var(--danger);font-size:.85rem;margin:8px 0;min-height:1.2em}
+  button.primary{
+    width:100%;padding:15px;border:0;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));color:#04141a;transition:.2s;
+  }
+  button.primary:hover{transform:translateY(-1px);filter:brightness(1.08)}
+  #result{display:none;padding-bottom:60px}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:10px 0 30px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+  .stat small{color:var(--muted);display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px}
+  .stat strong{font-size:1.4rem}
+  h2{margin:10px 0 18px;font-size:1.5rem}
+  .week{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+  .day{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+  .day h3{display:flex;justify-content:space-between;align-items:center;font-size:1.05rem;margin-bottom:4px}
+  .day .focus{color:var(--accent);font-size:.85rem;margin-bottom:12px;font-weight:600}
+  .day.rest{opacity:.7}
+  .day ul{list-style:none}
+  .day li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--border);font-size:.92rem}
+  .day li span:last-child{color:var(--muted);white-space:nowrap}
+  .actions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+  button.secondary{padding:12px 20px;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--text);cursor:pointer;font-weight:600}
+  button.secondary:hover{border-color:var(--accent);color:var(--accent)}
+  .notice{margin-top:30px;font-size:.8rem;color:var(--muted);border-left:3px solid var(--accent2);padding-left:12px}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:30px 0;border-top:1px solid var(--border)}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}.card{padding:22px}}
+  @media print{
+    body{background:#fff;color:#000}header,.card,.actions,footer,.hero{display:none}
+    .day,.stat{border:1px solid #999;background:#fff;color:#000;break-inside:avoid}
+    #result{display:block!important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <div class="logo">Treino<span>Pro</span></div>
+    <div class="badge">Plano semanal personalizado</div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <h1>Seu treino da semana,<br><em>feito para você</em></h1>
+    <p>Informe sua idade, peso e quantas repetições consegue fazer. Em segundos você recebe um plano de 7 dias.</p>
+  </section>
+
+  <section class="card" id="formCard">
+    <form id="form" novalidate>
+      <div class="grid">
+        <div class="field">
+          <label for="age">Idade (anos)</label>
+          <input type="number" id="age" min="12" max="90" placeholder="Ex: 28" required>
+        </div>
+        <div class="field">
+          <label for="weight">Peso (kg)</label>
+          <input type="number" id="weight" min="30" max="300" step="0.1" placeholder="Ex: 75" required>
+        </div>
+        <div class="field">
+          <label for="reps">Repetições</label>
+          <input type="number" id="reps" min="0" max="100" placeholder="Ex: 15" required>
+        </div>
+      </div>
+      <p class="hint" style="margin:-6px 0 16px">Repetições: quantas flexões consegue fazer seguidas, sem parar.</p>
+
+      <div class="field">
+        <label for="goal">Objetivo</label>
+        <select id="goal">
+          <option value="hipertrofia">Ganhar massa muscular</option>
+          <option value="emagrecer">Emagrecer</option>
+          <option value="condicionamento">Condicionamento geral</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="days">Dias de treino por semana</label>
+        <select id="days">
+          <option value="3">3 dias</option>
+          <option value="4" selected>4 dias</option>
+          <option value="5">5 dias</option>
+        </select>
+      </div>
+
+      <div class="error" id="error" role="alert"></div>
+      <button type="submit" class="primary">Gerar meu plano</button>
+    </form>
+  </section>
+
+  <section id="result" aria-live="polite">
+    <h2>Seu perfil</h2>
+    <div class="summary" id="summary"></div>
+    <h2>Plano da semana</h2>
+    <div class="week" id="week"></div>
+    <div class="actions">
+      <button class="secondary" id="print">Imprimir / salvar PDF</button>
+      <button class="secondary" id="reset">Refazer</button>
+    </div>
+    <p class="notice">Este plano é uma sugestão geral e não substitui a orientação de um profissional de educação física ou médico. Em caso de dor, doença ou dúvida, consulte um profissional antes de treinar.</p>
+  </section>
+</main>
+
+<footer>© <span id="year"></span> TreinoPro · Projeto open source</footer>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
+  const SCHEDULE = {
+    3:[0,2,4], 4:[0,1,3,4], 5:[0,1,2,3,4]
+  };
+
+  // Exercícios por grupo: [nome, tipo]  (tipo: "reps" ou "tempo")
+  const EX = {
+    peito:[["Flexão de braço","reps"],["Flexão inclinada","reps"],["Supino com halteres","reps"],["Crucifixo","reps"]],
+    costas:[["Remada curvada","reps"],["Barra fixa / puxada","reps"],["Remada unilateral","reps"],["Superman","reps"]],
+    pernas:[["Agachamento livre","reps"],["Afundo","reps"],["Levantamento terra romeno","reps"],["Panturrilha em pé","reps"]],
+    ombros:[["Desenvolvimento","reps"],["Elevação lateral","reps"],["Elevação frontal","reps"],["Face pull","reps"]],
+    bracos:[["Rosca direta","reps"],["Tríceps testa","reps"],["Rosca martelo","reps"],["Mergulho no banco","reps"]],
+    core:[["Prancha","tempo"],["Abdominal supra","reps"],["Prancha lateral","tempo"],["Elevação de pernas","reps"]],
+    cardio:[["Corrida leve / bicicleta","tempo"],["Polichinelo","tempo"],["Corda","tempo"]]
+  };
+
+  const SPLITS = {
+    3:[["Corpo inteiro A",["pernas","peito","costas","core"]],
+       ["Corpo inteiro B",["pernas","ombros","costas","bracos"]],
+       ["Corpo inteiro C + cardio",["peito","pernas","core","cardio"]]],
+    4:[["Superiores A",["peito","costas","ombros"]],
+       ["Inferiores A",["pernas","core"]],
+       ["Superiores B",["costas","peito","bracos"]],
+       ["Inferiores B + cardio",["pernas","core","cardio"]]],
+    5:[["Peito e tríceps",["peito","bracos"]],
+       ["Costas e bíceps",["costas","bracos"]],
+       ["Pernas",["pernas","core"]],
+       ["Ombros e core",["ombros","core"]],
+       ["Full body + cardio",["peito","costas","pernas","cardio"]]]
+  };
+
+  function level(reps, age){
+    let score = reps;
+    if(age>=50) score += 5; else if(age>=40) score += 2;
+    if(score<8)  return {n:"Iniciante", sets:3, r:"8–10", rest:"60–90s"};
+    if(score<20) return {n:"Intermediário", sets:4, r:"10–12", rest:"60s"};
+    return {n:"Avançado", sets:5, r:"12–15", rest:"45–60s"};
+  }
+
+  function adjustByGoal(lv, goal){
+    const o = {...lv};
+    if(goal==="hipertrofia"){ o.r = lv.n==="Avançado"?"8–12":"8–12"; o.rest="60–90s"; }
+    if(goal==="emagrecer"){ o.r = "12–15"; o.rest="30–45s"; }
+    if(goal==="condicionamento"){ o.r = "10–15"; }
+    return o;
+  }
+
+  function imc(w, age){
+    return {
+      water:(w*0.035).toFixed(1),
+      protein:Math.round(w*1.6),
+      hr:220-age
+    };
+  }
+
+  function exFor(groups, lv){
+    const list = [];
+    groups.forEach(g=>{
+      const n = g==="cardio"?1:(groups.length>3?1:2);
+      EX[g].slice(0,n).forEach(([name,type])=>{
+        if(type==="tempo"){
+          list.push([name, g==="cardio"?"15–20 min":lv.n==="Iniciante"?"3 × 20s":lv.n==="Intermediário"?"3 × 40s":"4 × 60s"]);
+        } else list.push([name, lv.sets+" × "+lv.r]);
+      });
+    });
+    return list;
+  }
+
+  function validate(age,w,reps){
+    if(!age||age<12||age>90) return "Informe uma idade entre 12 e 90 anos.";
+    if(!w||w<30||w>300) return "Informe um peso entre 30 e 300 kg.";
+    if(isNaN(reps)||reps<0||reps>100) return "Informe repetições entre 0 e 100.";
+    return "";
+  }
+
+  $("form").addEventListener("submit", e=>{
+    e.preventDefault();
+    const age=+$("age").value, w=+$("weight").value, reps=$("reps").value===""?NaN:+$("reps").value;
+    const goal=$("goal").value, days=+$("days").value;
+    const err=validate(age,w,reps);
+    $("error").textContent=err;
+    if(err) return;
+
+    const lv=adjustByGoal(level(reps,age),goal);
+    const info=imc(w,age);
+    const goalName={hipertrofia:"Ganho de massa",emagrecer:"Emagrecimento",condicionamento:"Condicionamento"}[goal];
+
+    $("summary").innerHTML = [
+      ["Nível",lv.n],["Objetivo",goalName],["Séries × reps",lv.sets+" × "+lv.r],
+      ["Descanso",lv.rest],["Água/dia",info.water+" L"],["Proteína/dia",info.protein+" g"],
+      ["FC máx. estimada",info.hr+" bpm"]
+    ].map(([a,b])=>`<div class="stat"><small>${a}</small><strong>${b}</strong></div>`).join("");
+
+    const trainDays = SCHEDULE[days], split = SPLITS[days];
+    let html="", k=0;
+    DAYS.forEach((d,i)=>{
+      if(trainDays.includes(i)){
+        const [title,groups]=split[k++];
+        const items=exFor(groups,lv).map(([n,s])=>`<li><span>${n}</span><span>${s}</span></li>`).join("");
+        html+=`<article class="day"><h3>${d}</h3><div class="focus">${title}</div><ul>${items}</ul></article>`;
+      } else {
+        const msg = i===6 ? "Descanso total e recuperação." : "Descanso ou caminhada leve de 20–30 min.";
+        html+=`<article class="day rest"><h3>${d}</h3><div class="focus">Descanso</div><p style="color:var(--muted);font-size:.9rem">${msg}</p></article>`;
+      }
+    });
+    $("week").innerHTML=html;
+
+    $("formCard").style.display="none";
+    $("result").style.display="block";
+    $("result").scrollIntoView({behavior:"smooth"});
+  });
+
+  $("reset").addEventListener("click",()=>{
+    $("result").style.display="none";
+    $("formCard").style.display="block";
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+  $("print").addEventListener("click",()=>window.print());
+  $("year").textContent=new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
